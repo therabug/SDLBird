@@ -10,11 +10,11 @@ public:
     RectangleComponent(SDL_Color color) : color(color) {}
 
     void render(SDL_Renderer* renderer) override {
-        // Transform bileþenini al
+        // Get the TransformComponent
         auto transform = parent->getComponent<TransformComponent>();
         if (!transform) return;
 
-        // Transform kullanýlarak çizim yapýlýr
+        // Draw 
         SDL_Rect rect = {
             static_cast<int>(transform->x),
             static_cast<int>(transform->y),
