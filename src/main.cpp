@@ -1,189 +1,95 @@
 #include <SDL2/SDL.h>
 #include <iostream>
+#include "RectangleComponent.h"
 #undef main
 
-struct Bird {
-	float x_pos;
-	float y_pos;
-	float x_size;
-	float y_size;
-};
+int main(int argc, char* argv[]) {
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window* window = SDL_CreateWindow("Clean Component Structure", 100, 100, 680, 480, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-struct Pipe {
-	float x_pos;
-	float y_pos;
-	float x_size;
-	float y_size;
-};
+    // Component: Bird
+    Component bird;
+    bird.addComponent<TransformComponent>(70.0f, 60.0f, 50.0f, 50.0f);
+    bird.addComponent<RectangleComponent>(SDL_Color{ 255, 255, 0, 255 });
 
-float gravity = 0.1f;
-float velocity = 0.0f;
+    // Component: Pipe 1
+    Component pipe1;
+    pipe1.addComponent<TransformComponent>(700.0f, 400.0f, 50.0f, 150.0f);
+    pipe1.addComponent<RectangleComponent>(SDL_Color{ 0, 255, 0, 255 });
 
-const float JUMP_POWER = 5.0f;
+    // Component: Pipe 2
+    Component pipe2;
+    pipe2.addComponent<TransformComponent>(700.0f, 0.0f, 50.0f, 150.0f);
+    pipe2.addComponent<RectangleComponent>(SDL_Color{ 0, 255, 0, 255 }); 
 
-const float START_X = 70.0f;
-const float START_Y = 60.0f;
-const float START_SIZE = 50.0f;
+    float gravity = 200.0f;
+    float velocity = 0.0f;
 
-Bird bird = { START_X, START_Y, START_SIZE, START_SIZE };
-Pipe pipe = { 700.0f, 0.0f, 50.0f, 480.0f };
-Pipe pipe2 = { 700.0f, 0.0f, 50.0f, 480.0f };
+    bool isKeyPressed = false;
 
-int r, g, b = 0;
+    Uint32 lastTime = SDL_GetTicks();
 
-void game_over() {
-	bird.x_pos = START_X;
-	bird.y_pos = START_Y;
-	pipe.x_pos = 700.0f;
-	pipe2.x_pos = 700.0f;
-	pipe.y_pos = 350.0f;
-	pipe2.y_pos = -350.0f;
-	velocity = 0.0f;
-}
+    bool running = true;
+    SDL_Event event;
 
-void bird_collides(Pipe pipe) {
-	if (bird.x_pos + bird.x_size >= pipe.x_pos && bird.x_pos <= pipe.x_pos + pipe.x_size && bird.y_pos + bird.y_size >= pipe.y_pos && bird.y_pos <= pipe.y_pos + pipe.y_size) {
-		game_over();
-	}
-}
+    while (running) {
+        Uint32 currentTime = SDL_GetTicks();
+        float deltaTime = (currentTime - lastTime) / 1000.0f;
+        lastTime = currentTime;
 
-void update_pipes() {
-	if (pipe.x_pos < -50.0f) {
-		pipe.x_pos = 700.0f;
-		float random = (rand() % 150);
-		pipe.y_pos = random + 350.0f;
-		pipe2.x_pos = 700.0f;
-		pipe2.y_pos = random - 350.0f;
-		r = rand() % 255;
-		g = rand() % 255;
-		b = rand() % 255;
-		
-	}
-	pipe.x_pos -= 2.0f;
-	pipe2.x_pos -= 2.0f;
-	bird_collides(pipe);
-	bird_collides(pipe2);
-}
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+            }
 
-int main(int argc, char *argv[])
-{
-	// Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) != 0)
-	{
-		std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
-		return 1;
-	}
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE && isKeyPressed == false) {
+                velocity = -150.0f;
+                isKeyPressed = true;
+            }
+            if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_SPACE) {
+                isKeyPressed = false;
+            }
+        }
 
-	// Create a window
-	SDL_Window *window = SDL_CreateWindow("Hello SDL",
-		100, 100, 680, 480, SDL_WINDOW_SHOWN);
-	if (window == nullptr)
-	{
-		std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
+        // Kuþun hareketi
+        velocity += gravity * deltaTime;
+        auto birdTransform = bird.getComponent<TransformComponent>();
+        birdTransform->y += velocity * deltaTime;
 
-	// Create a renderer
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (renderer == nullptr)
-	{
-		SDL_DestroyWindow(window);
-		std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
+        // Borularýn hareketi
+        auto pipe1Transform = pipe1.getComponent<TransformComponent>();
+        auto pipe2Transform = pipe2.getComponent<TransformComponent>();
+        pipe1Transform->x -= 250.0f * deltaTime;
+        pipe2Transform->x -= 250.0f * deltaTime;
 
-	SDL_Rect square = {};
-	square.x = bird.x_pos;  // x position
-	square.y = bird.y_pos;  // y position
-	square.w = bird.x_size;  // width
-	square.h = bird.y_size;  // height
+        float random = (rand() % 301) - 150;
+        if (pipe1Transform->x + pipe1Transform->width < 0) {
+            pipe1Transform->x = 680.0f;
+            pipe1Transform->y = random + 400.0f;
+        }
+        if (pipe2Transform->x + pipe2Transform->width < 0) {
+            pipe2Transform->x = 680.0f;
+            pipe2Transform->y = random;
+        }
 
-	SDL_Rect pipe_square = {};
-	pipe.y_pos += 350.0f;
-	pipe_square.x = pipe.x_pos;  // x position
-	pipe_square.y = pipe.y_pos;  // y position
-	pipe_square.w = 50.0f;  // width
-	pipe_square.h = 480.0f;  // height
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
 
-	SDL_Rect pipe_square2 = {};
-	pipe2.y_pos -= 350.0f;
-	pipe_square2.x = pipe2.x_pos;  // x position
-	pipe_square2.y = pipe2.y_pos;  // y position
-	pipe_square2.w = 50.0f;  // width
-	pipe_square2.h = 480.0f;  // height
+        bird.update();
+        bird.render(renderer);
 
-	bool key_pressed = false;
+        pipe1.update();
+        pipe1.render(renderer);
 
-	// Main event loop
-	bool running = true;
-	while (running)
-	{
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
-		{
-			if (event.type == SDL_KEYDOWN)
-			{
-				if (event.key.keysym.sym == SDLK_SPACE && key_pressed == false)
-				{
-					velocity = -JUMP_POWER;
-					key_pressed = true;
-				}
-			}
+        pipe2.update();
+        pipe2.render(renderer);
 
-			if (event.type == SDL_KEYUP) {
-				if (event.key.keysym.sym == SDLK_SPACE && key_pressed == true) {
-					key_pressed = false;
-				}
-			}
+        SDL_RenderPresent(renderer);
+    }
 
-			if (event.type == SDL_QUIT)
-			{
-				running = false;
-			}
-		}
-
-		velocity += gravity;
-		bird.y_pos += velocity;
-		update_pipes();
-
-		square.x = bird.x_pos;  // x position
-		square.y = bird.y_pos;  // y position
-		pipe_square.x = pipe.x_pos;  // x position
-		pipe_square.y = pipe.y_pos;
-		pipe_square2.x = pipe2.x_pos;  // x position
-		pipe_square2.y = pipe2.y_pos;
-
-
-		if (bird.y_pos + bird.y_size >= 480 || bird.y_pos <= 0) {
-			game_over();
-		}
-
-		// Better coloring
-		SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-		SDL_RenderClear(renderer);
-
-		// Render the square
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &square);
-
-		// Render the pipe square
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderFillRect(renderer, &pipe_square);
-
-		// Render the pipe square 2
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderFillRect(renderer, &pipe_square2);
-
-		// Present the backbuffer
-		SDL_RenderPresent(renderer);
-	}
-
-	// Cleanup
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-
-	return 0;
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
 }
