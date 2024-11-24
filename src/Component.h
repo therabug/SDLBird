@@ -27,21 +27,25 @@ public:
     // Get a component of type T
     template <typename T>
     T* getComponent() {
+        // Search in the immediate components
         for (auto& component : children) {
             if (auto ptr = dynamic_cast<T*>(component.get())) {
                 return ptr;
             }
         }
 
-        // Recursively check children components
+        // Recursively check children components if not found
         for (auto& component : children) {
             if (auto result = component->getComponent<T>()) {
                 return result;
             }
         }
 
-        return nullptr;
+        std::cerr << "Error: Component of type " << typeid(T).name() << " not found in parent entity.\n"; // Optional: logs to console
+
+        return nullptr; // Return nullptr to indicate the component wasn't found
     }
+
 
     // Update the component and all its children recursively
     virtual void update() {

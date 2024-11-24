@@ -2,21 +2,21 @@
 #include "Component.h"
 #include <SDL2/SDL.h>
 #include "TransformComponent.h"
+#include <iostream>
 
 class RectangleComponent : public Component {
     SDL_Color color;
 
 public:
-    RectangleComponent(SDL_Color color) : color(color) {
-        if (!parent->getComponent<TransformComponent>()) {
-            throw std::runtime_error("RectangleComponent requ+ires a TransformComponent.");
-        }
-    }
+    RectangleComponent(SDL_Color color) : color(color) {}
 
     void render(SDL_Renderer* renderer) override {
         // Get the TransformComponent
         auto transform = parent->getComponent<TransformComponent>();
-        if (!transform) return;
+        if (!transform) {
+            std::cerr << "Error: TransformComponent missing from parent entity.\n";
+            return;
+        }
 
         // Draw 
         SDL_Rect rect = {

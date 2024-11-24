@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window* window = SDL_CreateWindow("Clean Component Structure", 100, 100, 680, 480, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("SDLBird", 100, 100, 680, 480, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     // Component: Bird
