@@ -10,7 +10,7 @@ class RectangleComponent : public Component {
 public:
     RectangleComponent(SDL_Color color) : color(color) {}
 
-    void render(SDL_Renderer* renderer) override {
+    void renderImpl(SDL_Renderer* renderer) override {
         // Get the TransformComponent
         auto transform = parent->getComponent<TransformComponent>();
         if (!transform) {

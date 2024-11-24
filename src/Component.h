@@ -4,8 +4,9 @@
 #include <memory>
 #include <type_traits>
 #include <stdexcept>  // For exception safety
+#include "CoreComponent.h"
 
-class Component {
+class Component : public CoreComponent {
 public:
     std::vector<std::unique_ptr<Component>> children;
     Component* parent = nullptr;
@@ -41,7 +42,7 @@ public:
             }
         }
 
-        std::cerr << "Error: Component of type " << typeid(T).name() << " not found in parent entity.\n"; // Optional: logs to console
+        throw std::runtime_error("Component of type " + std::string(typeid(T).name()) + " not found.");
 
         return nullptr; // Return nullptr to indicate the component wasn't found
     }
@@ -49,6 +50,7 @@ public:
 
     // Update the component and all its children recursively
     virtual void update() {
+        updateImpl();
         for (auto& component : children) {
             component->update();
         }
@@ -56,10 +58,14 @@ public:
 
     // Render the component and all its children recursively
     virtual void render(SDL_Renderer* renderer) {
+        renderImpl(renderer);
         for (auto& component : children) {
             component->render(renderer);
         }
     }
+
+    virtual void renderImpl(SDL_Renderer* renderer){}
+    virtual void updateImpl(){}
 
     // Destructor
     virtual ~Component() = default;

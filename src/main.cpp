@@ -12,6 +12,8 @@ int main(int argc, char* argv[]) {
     Component bird;
     bird.addComponent<TransformComponent>(70.0f, 60.0f, 50.0f, 50.0f);
     bird.addComponent<RectangleComponent>(SDL_Color{ 255, 255, 0, 255 });
+    class amogus : public TransformComponent{};
+    bird.addComponent<amogus>();
 
     // Component: Pipe 1
     Component pipe1;
