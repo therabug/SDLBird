@@ -4,11 +4,10 @@
 #include <memory>
 #include <type_traits>
 #include <stdexcept>  // For exception safety
-#include "CoreComponent.h"
 
-class Component : public CoreComponent {
+class Component {
 public:
-    std::vector<std::unique_ptr<Component>> children;
+    std::vector<std::unique_ptr<Component>> components;
     Component* parent = nullptr;
 
     // Add a component to the current component
@@ -20,7 +19,7 @@ public:
         component->parent = this;  // Set the parent pointer directly
 
         T* componentPtr = component.get();
-        children.push_back(std::move(component));  // Transfer ownership to children vector
+        components.push_back(std::move(component));  // Transfer ownership to components vector
 
         return componentPtr;
     }
@@ -29,14 +28,14 @@ public:
     template <typename T>
     T* getComponent() {
         // Search in the immediate components
-        for (auto& component : children) {
+        for (auto& component : components) {
             if (auto ptr = dynamic_cast<T*>(component.get())) {
                 return ptr;
             }
         }
 
-        // Recursively check children components if not found
-        for (auto& component : children) {
+        // Recursively check sub-components if not found
+        for (auto& component : components) {
             if (auto result = component->getComponent<T>()) {
                 return result;
             }
@@ -47,26 +46,5 @@ public:
         return nullptr; // Return nullptr to indicate the component wasn't found
     }
 
-
-    // Update the component and all its children recursively
-    virtual void update() {
-        updateImpl();
-        for (auto& component : children) {
-            component->update();
-        }
-    }
-
-    // Render the component and all its children recursively
-    virtual void render(SDL_Renderer* renderer) {
-        renderImpl(renderer);
-        for (auto& component : children) {
-            component->render(renderer);
-        }
-    }
-
-    virtual void renderImpl(SDL_Renderer* renderer){}
-    virtual void updateImpl(){}
-
-    // Destructor
     virtual ~Component() = default;
 };

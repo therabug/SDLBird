@@ -1,16 +1,19 @@
 #pragma once
+
 #include "Component.h"
 #include <SDL2/SDL.h>
 #include "TransformComponent.h"
 #include <iostream>
+#include "RenderableComponent.h"
 
-class RectangleComponent : public Component {
-    SDL_Color color;
+class RectangleComponent : public RenderableComponent {
+    
 
 public:
+    SDL_Color color;
     RectangleComponent(SDL_Color color) : color(color) {}
 
-    void renderImpl(SDL_Renderer* renderer) override {
+    void render(SDL_Renderer* renderer) override {
         // Get the TransformComponent
         auto transform = parent->getComponent<TransformComponent>();
         if (!transform) {

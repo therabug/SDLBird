@@ -1,7 +1,3 @@
-#include "EmptyComponent.h"
-
-class CoreComponent : public EmptyComponent {
+class CoreComponent{
 public:
-    virtual void update() {}
-    virtual void render() {}
 };
