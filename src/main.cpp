@@ -74,6 +74,21 @@ private:
     }
 };
 
+void render(Component* entity, SDL_Renderer* renderer, CameraComponent* camera) {
+    auto transform = entity->getComponent<TransformComponent>();
+    auto rectangle = entity->getComponent<RectangleComponent>();
+
+    if (transform && rectangle) {
+        SDL_Rect rect;
+        rect.x = transform->x - camera->x;
+        rect.y = transform->y - camera->y;
+        rect.w = transform->width;
+        rect.h = transform->height;
+
+        SDL_SetRenderDrawColor(renderer, rectangle->color.r, rectangle->color.g, rectangle->color.b, rectangle->color.a);
+        SDL_RenderFillRect(renderer, &rect);
+    }
+}
 
 int main(int argc, char* argv[]) {
     SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
